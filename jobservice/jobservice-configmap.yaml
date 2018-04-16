@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "harbor-jobservice"
+  labels:
+    app: harbor
+data:
+  app.conf: |+
+    appname = jobservice
+    runmode = prod
+    [prod]
+    httpport = 8080

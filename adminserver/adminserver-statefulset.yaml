@@ -1,0 +1,59 @@
+apiVersion: apps/v1beta2
+kind: StatefulSet
+metadata:
+  name: "harbor-adminserver"
+  labels:
+    app: harbor
+    component: adminserver
+spec:
+  replicas: 1
+  serviceName: "harbor-adminserver"
+  selector:
+    matchLabels:
+      app: harbor
+      component: adminserver
+  template:
+    metadata:
+      labels:
+        app: harbor
+        component: adminserver
+    spec:
+      containers:
+      - name: adminserver
+        image: vmware/harbor-adminserver:v1.4.0
+        envFrom:
+        - configMapRef:
+            name: "harbor-adminserver"
+        - secretRef:
+            name: "harbor-adminserver"
+        env:
+          - name: PORT
+            value: "8080"
+          - name: JSON_CFG_STORE_PATH
+            value: /etc/adminserver/config/config.json
+          - name: KEY_PATH
+            value: /etc/adminserver/key
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: adminserver-config
+          mountPath: /etc/adminserver/config
+        - name: adminserver-key
+          mountPath: /etc/adminserver/key
+          subPath: key
+      volumes:
+      - name: adminserver-key
+        secret:
+          secretName: "harbor-adminserver"
+          items:
+          - key: secretKey
+            path: key
+  volumeClaimTemplates:
+  - metadata:
+      name: adminserver-config
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "harbor-local-storage"
+      resources:
+        requests:
+          storage: 5Gi

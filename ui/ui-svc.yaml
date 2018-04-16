@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: "harbor-ui"
+  labels:
+    app: harbor
+spec:
+  ports:
+    - port: 80
+      targetPort: 8080
+  selector:
+    app: harbor
+    component: ui

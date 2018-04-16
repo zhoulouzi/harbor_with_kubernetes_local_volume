@@ -1,0 +1,41 @@
+apiVersion: apps/v1beta2
+kind: StatefulSet
+metadata:
+  name: harbor-mysql
+  labels:
+    app: harbor
+    component: mysql
+spec:
+  replicas: 1
+  serviceName: "harbor-mysql"
+  selector:
+    matchLabels:
+      app: harbor
+      component: mysql
+  template:
+    metadata:
+      labels:
+        app: harbor
+        component: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: vmware/harbor-db:v1.4.0
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+               name: "harbor-mysql"
+               key: mysqlRootPassword
+        volumeMounts:
+        - name: mysql-data
+          mountPath: /var/lib/mysql
+  volumeClaimTemplates:
+  - metadata:
+      name: "mysql-data"
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "harbor-local-storage"
+      resources:
+        requests:
+          storage: 5Gi

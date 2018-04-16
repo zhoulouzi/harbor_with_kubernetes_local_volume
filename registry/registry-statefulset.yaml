@@ -1,0 +1,58 @@
+apiVersion: apps/v1beta2
+kind: StatefulSet
+metadata:
+  name: "harbor-registry"
+  labels:
+    app: harbor
+    component: registry
+spec:
+  replicas: 1
+  serviceName: "harbor-registry"
+  selector:
+    matchLabels:
+      app: harbor
+      component: registry
+  template:
+    metadata:
+      labels:
+        app: harbor
+        component: registry
+    spec:
+      containers:
+      - name: registry
+        image: vmware/registry-photon:v2.6.2-v1.4.0
+        args: ["serve", "/etc/registry/config.yml"]
+        env:
+          - name: REGISTRY_HTTP_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: "harbor-registry"
+                key: httpSecret
+        ports:
+        - containerPort: 5000
+        - containerPort: 5001
+        volumeMounts:
+        - name: registry-data
+          mountPath: /var/lib/registry
+        - name: registry-root-certificate
+          mountPath: /etc/registry/root.crt
+          subPath: root.crt
+        - name: registry-config
+          mountPath: /etc/registry/config.yml
+          subPath: config.yml
+      volumes:
+      - name: registry-root-certificate
+        secret:
+          secretName: "harbor-registry"
+      - name: registry-config
+        configMap:
+          name: "harbor-registry"
+  volumeClaimTemplates:
+  - metadata:
+      name: "registry-data"
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "harbor-local-storage"
+      resources:
+        requests:
+          storage: 200Gi

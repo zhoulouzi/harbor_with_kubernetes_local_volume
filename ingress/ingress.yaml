@@ -1,0 +1,26 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: "harbor-ingress"
+  labels:
+    app: harbor
+  annotations:
+    # 1.9.3 https://github.com/kubernetes/ingress-nginx/blob/master/docs/user-guide/annotations.md
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+spec:
+  tls:
+  - hosts:
+    - "registry.example.com"
+#     secretName: "harbor-ingress"
+  rules:
+  - host: "registry.example.com"
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: harbor-ui
+          servicePort: 80
+      - path: /v2
+        backend:
+          serviceName: harbor-registry
+          servicePort: 5000
